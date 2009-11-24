@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+	<head>
+		<title>memol</title>
+		<style type="text/css">
+			body {
+				line-height: 1.8;
+				width: 75%;
+				margin: auto;
+			}
+		</style>
+	</head>
+<body>
+
+<h1>memol</h1>
+
+<p>Memol is a music notation language focused on MIDI.  It is
+well-structured, score friendly and easy to read, compared with another
+one.</p>
+
+<h2>1. Features</h2>
+
+<h3>1.1. Core notation</h3>
+
+<p>Memol specify the note duration <em>not by number but by dividing the
+unit duration.</em></p>
+
+<p>Core notation of Memol has only two structures: "(...)" and "[...]".
+"[...]" represents group notes.  It divide its duration equally into child
+notes.  "(...)" represents chord.  Its child notes are put at the same time.
+These can be nested each other.</p>
+
+<p>Here is a example coded in usual notation:</p>
+
+<pre>
+a4 b4 &lt; c4. d16 d16 c8. &gt; b16 a16 &lt; e0 g0 b8. f8 e4. b2 a2
+</pre>
+
+<p>coded in Memol:</p>
+
+<pre>
+{ [a B] [C. [D D]] | [c. b] [a E.] [F (e g b)^] / | b a }
+{ a B 3C [D D] | [3c b] [a 3E] [F (e g b)^] / | b a }
+</pre>
+
+<p>As you can see, Memol looks much prettier.</p>
+
+<h3>1.2. Relative octave</h3>
+
+<p>Memol has a mechanism to avoid annoying octave changing such as
+"c&lt;b&gt;c&lt;b". If you write a note in upper case, it has higher pitch
+than previous one within a octave.  If in lower case, it has lower pitch
+within a octave.</p>
+
+<h3>1.3. Separation of chord, backing form, expression</h3>
+	
+<p>Memol aims to separate some musical structure such as chord, backing form,
+expression (control change, gate time, etc..)</p>
+
+<h3>1.4. Extend with general programming language</h3>
+
+<p>...</p>
+<p>...</p>
+
+<address>Copyright 2006 by Yasuhiro Fujii.</address>
+
+</body>
+</html>
