@@ -21,18 +21,6 @@ let getOptions = (fun () ->
     (!dst, !src)
 )
 
-let openInSafe = (fun proc file ->
-    let ich = open_in file in
-    let result = try
-        proc ich 
-    with err -> (
-        close_in_noerr ich;
-        raise err
-    ) in
-    close_in ich;
-    result
-)
-
 let main = (fun () ->
     let (odst, osrc) = getOptions() in
     let src = (match osrc with
@@ -45,7 +33,10 @@ let main = (fun () ->
         try
             Parser.top Lexer.lex buf
         with Lexer.TokenError | Parsing.Parse_error as err -> (
-            let line = buf.Lexing.lex_buffer |> ExtStr.count 0 buf.Lexing.lex_curr_pos '\n' in
+            let line =
+                buf.Lexing.lex_buffer |>
+                ExtStr.count 0 buf.Lexing.lex_curr_pos '\n'
+            in
             let msg = Printf.sprintf "Syntax error at line #%d." (line + 1) in
             raise (Failure msg)
         )
