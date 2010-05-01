@@ -60,6 +60,38 @@ module ExtList = struct
         )
     )
 
+    (*
+    let rec mapFilter = (fun f xs ->
+        (match xs with
+            | [] ->
+                []
+            | x1 :: xs ->
+                let ys = mapFilter xs in
+                (match f x1 with
+                    | Some(y1) -> y1 :: ys
+                    | None     -> ys
+                )
+        )
+    )
+    *)
+
+    let rec mapFilterAcc = (fun f dst src ->
+        (match src with
+            | [] ->
+                dst
+            | x1 :: xs ->
+                let dst = (match f x1 with
+                    | Some(y1) -> y1 :: dst
+                    | None     -> dst
+                ) in
+                mapFilterAcc f dst xs
+        )
+    )
+
+    let mapFilter = (fun f xs ->
+        xs |> mapFilterAcc f [] |> List.rev
+    )
+
     let rec mapWithState = (fun f state xs ->
         (match xs with
             | [] ->
@@ -77,9 +109,19 @@ end
 module ExtHash = struct
     let merge = (fun xs ys ->
         let tbl = Hashtbl.copy xs in
-        ys |> Hashtbl.iter (fun k v ->
-            Hashtbl.replace tbl k v
-        );
+        ys |> Hashtbl.iter (Hashtbl.replace tbl);
         tbl
     )
 end
+
+let openInSafe = (fun proc file ->
+    let ich = open_in file in
+    let result = try
+        proc ich 
+    with err -> (
+        close_in_noerr ich;
+        raise err
+    ) in
+    close_in ich;
+    result
+)

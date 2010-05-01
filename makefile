@@ -13,7 +13,7 @@ test: $(PROG)
 	./memol testCase.mml
 
 clean:
-	rm -f *.cmi *.cmo *cmx *.o lexer.ml parser.mli parser.ml tags $(PROG)
+	rm -f *.cm? *.o lexer.ml parser.mli parser.ml tags $(PROG)
 
 
 $(PROG): $(SRCS)
