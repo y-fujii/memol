@@ -4,29 +4,10 @@
     open Ast
 %}
 
-%token LPAREN
-%token RPAREN
-%token LBRACE
-%token RBRACE
-%token LBRACKET
-%token RBRACKET
-%token EQUAL
-%token LESS
-%token GREATER
-%token DOLLAR
-%token PLUS
-%token MINUS
-%token UNDER
-%token SLASH
-%token HAT
-%token DOT
-%token STAR
-%token VERT
-%token SCORE
-%token VALUE
+%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET EQUAL LESS GREATER DOLLAR
+%token PLUS MINUS UNDER SLASH HAT STAR VERT SCORE VALUE
 %token <int> INTEGER
-%token <char> SMALLALPHA
-%token <char> LARGEALPHA
+%token <char> SMALLALPHA LARGEALPHA
 %token <string> LABEL
 %token EOF
 
