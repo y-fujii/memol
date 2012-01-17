@@ -4,7 +4,6 @@
     open Ast
 %}
 
-%token DUMMY
 %token LPAREN
 %token RPAREN
 %token LBRACE
@@ -44,8 +43,7 @@ phrase
     : SLASH                                 { PhraseSyntax.Repeat }
     | LBRACKET innerSequence RBRACKET       { PhraseSyntax.Sequence($2) }
     | LPAREN innerParallel RPAREN           { PhraseSyntax.Parallel($2) }
-    | SCORE INTEGER SLASH INTEGER LBRACE innerScore RBRACE
-                                            { PhraseSyntax.Score(($2, $4), $6) }
+    | SCORE LBRACE innerScore RBRACE	    { PhraseSyntax.Score($3) }
 
 innerSequence
     : phrase innerSequence                  { $1 :: $2 }

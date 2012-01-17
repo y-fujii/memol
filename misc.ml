@@ -3,117 +3,6 @@
 
 let (|>) = fun v f -> f v
 
-let string_of_char = Printf.sprintf "%c"
-
-module ExtStr = struct
-    (* tailcall *)
-    let rec count = (fun n0 n1 c str ->
-        let rec loop = (fun cnt i ->
-            if i >= n1 then
-                cnt
-            else
-                let cnt = if str.[i] = c then cnt + 1 else cnt in
-                loop cnt (i + 1)
-        ) in
-        loop 0 n0
-    )
-end
-
-module ExtList = struct
-    let getFirst = (fun xs ->
-        (match xs with
-            | [] ->
-                raise (Failure "getFirst")
-            | car :: cdr ->
-                car
-        )
-    )
-
-    let rec getLast = (fun xs ->
-        (match xs with
-            | [] ->
-                raise (Failure "getLast")
-            | car :: [] ->
-                car
-            | car :: cdr ->
-                getLast cdr
-        )
-    )
-
-    let applyFirst = (fun f xs ->
-        (match xs with
-            | [] ->
-                raise (Failure "applyFirst")
-            | car :: cdr ->
-                (f car) :: cdr
-        )
-    )
-
-    let rec applyLast = (fun f xs ->
-        (match xs with
-            | [] ->
-                raise (Failure "applyLast")
-            | car :: [] ->
-                (f car) :: []
-            | car :: cdr ->
-                car :: (applyLast f cdr)
-        )
-    )
-
-    (*
-    let rec mapFilter = (fun f xs ->
-        (match xs with
-            | [] ->
-                []
-            | x1 :: xs ->
-                let ys = mapFilter xs in
-                (match f x1 with
-                    | Some(y1) -> y1 :: ys
-                    | None     -> ys
-                )
-        )
-    )
-    *)
-
-    let rec mapFilterAcc = (fun f dst src ->
-        (match src with
-            | [] ->
-                dst
-            | x1 :: xs ->
-                let dst = (match f x1 with
-                    | Some(y1) -> y1 :: dst
-                    | None     -> dst
-                ) in
-                mapFilterAcc f dst xs
-        )
-    )
-
-    let mapFilter = (fun f xs ->
-        xs |> mapFilterAcc f [] |> List.rev
-    )
-
-    let rec mapWithState = (fun f state xs ->
-        (match xs with
-            | [] ->
-                (state, [])
-
-            | x1 :: xs ->
-                let (state1, x1) = f state x1 in
-                let (stateL, xs) = mapWithState f state1 xs in
-                (stateL, x1 :: xs)
-        )
-    )
-end
-
-
-module ExtHash = struct
-    let merge = (fun xs ys ->
-        let tbl = Hashtbl.copy xs in
-        ys |> Hashtbl.iter (Hashtbl.replace tbl);
-        tbl
-    )
-end
-
 let openInSafe = (fun proc file ->
     let ich = open_in file in
     let result = try
@@ -125,3 +14,82 @@ let openInSafe = (fun proc file ->
     close_in ich;
     result
 )
+
+module String = struct
+    include String
+
+    let rec fold = (fun f acc str ->
+        let n = length str in
+        let rec loop = (fun i acc ->
+            if i >= n then
+                acc
+            else
+                loop (i + 1) (f acc str.[i])
+        ) in
+        loop 0 acc
+    )
+end
+
+module List = struct
+    include List
+
+    let map = (fun f xs ->
+        xs |> rev_map f |> rev
+    )
+
+    let mapFilter = (fun f xs ->
+        xs |> fold_left (fun acc x ->
+            (match f x with
+                | Some(y) -> y :: acc
+                | None    -> acc
+            )
+        ) [] |> rev
+    )
+
+    let applyFst = (fun f xs ->
+        (match xs with
+            | []       -> []
+            | x1 :: xs -> (f x1) :: xs
+        )
+    )
+    
+    let applyLst = (fun f xs ->
+        xs |> rev |> applyFst f |> rev
+    )
+end
+
+module Map = struct
+    module type OrderedType = Map.OrderedType
+    module type S = Map.S
+
+    module Make(Ord: Map.OrderedType) = struct
+        include Map.Make(Ord)
+
+        let findSome = (fun x m ->
+            try
+                Some(find x m)
+            with Not_found ->
+                None
+        )
+    end
+end
+
+module Buffer = struct
+    include Buffer
+
+    let addByte = (fun buf k ->
+        add_char buf (Char.chr k)
+    )
+
+    let addInt16B = (fun buf k ->
+        addByte buf (k lsr 8);
+        addByte buf (k land 0xff);
+    )
+
+    let addInt32B = (fun buf k ->
+        addByte buf  (k lsr 24);
+        addByte buf ((k lsr 16) land 0xff);
+        addByte buf ((k lsr  8) land 0xff);
+        addByte buf ( k         land 0xff);
+    )
+end

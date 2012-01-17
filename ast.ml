@@ -24,7 +24,7 @@ end
 module PhraseSyntax = struct
     type t =
         | Repeat
-        | Score of (int * int) * NoteSyntax.t list
+        | Score of NoteSyntax.t list
         | Parallel of (t * bool) list
         | Sequence of t list
 end
