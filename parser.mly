@@ -61,8 +61,8 @@ innerScore
 note
     : UNDER                                 { NoteSyntax.Rest }
     | SLASH                                 { NoteSyntax.Repeat }
-    | SMALLALPHA keySig                     { NoteSyntax.Lower($1, $2) }
-    | LARGEALPHA keySig                     { NoteSyntax.Upper($1, $2) }
+    | SMALLALPHA keySig                     { NoteSyntax.RelNote(-1, $1, $2) }
+    | LARGEALPHA keySig                     { NoteSyntax.RelNote(+1, $1, $2) }
     | LBRACKET innerGroup RBRACKET          { NoteSyntax.Group($2) }
     | LPAREN innerChord RPAREN              { NoteSyntax.Chord($2) }
     | note HAT                              { NoteSyntax.Tie($1) }
