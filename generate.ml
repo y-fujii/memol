@@ -58,13 +58,12 @@ let rec generateSeq = (fun info state acc tree ->
             } in
             (state, acc)
 
-        | NoteSyntax.Rest ->
-            (state, acc)
-
         | NoteSyntax.Repeat ->
             generateSeq info state acc state.State.prevTree
 
+        | NoteSyntax.Rest
         | NoteSyntax.Chord([]) ->
+            let state = { state with State.tiedNote = TieMap.empty } in
             (state, acc)
 
         | NoteSyntax.Chord(tree1 :: trees) ->
