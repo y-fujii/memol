@@ -36,7 +36,7 @@ let rec generateSeq = (fun info state acc tree ->
             let acc = if info.Info.tie then
                 acc
             else
-                let timeBgn = (match TieMap.findSome (oct1, sym1, chr1) state.State.tiedNote with
+                let timeBgn = (match TieMap.findOpt (oct1, sym1, chr1) state.State.tiedNote with
                     | Some(t) -> t
                     | None    -> info.Info.timeBgn
                 ) in
@@ -60,7 +60,7 @@ let rec generateSeq = (fun info state acc tree ->
             let acc = if info.Info.tie then
                 acc
             else
-                let timeBgn = (match TieMap.findSome (oct1, sym1, chr1) state.State.tiedNote with
+                let timeBgn = (match TieMap.findOpt (oct1, sym1, chr1) state.State.tiedNote with
                     | Some(t) -> t
                     | None    -> info.Info.timeBgn
                 ) in

@@ -65,7 +65,7 @@ module Map = struct
     module Make(Ord: Map.OrderedType) = struct
         include Map.Make(Ord)
 
-        let findSome = (fun x m ->
+        let findOpt = (fun x m ->
             try
                 Some(find x m)
             with Not_found ->
