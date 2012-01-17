@@ -32,30 +32,32 @@ let main = (fun () ->
         let buf = Lexing.from_channel ich in
         try
             Parser.top Lexer.lex buf
-        with Lexer.TokenError | Parsing.Parse_error as err -> (
-            let line =
-                buf.Lexing.lex_buffer |>
-                ExtStr.count 0 buf.Lexing.lex_curr_pos '\n'
-            in
-            let msg = Printf.sprintf "Syntax error at line #%d." (line + 1) in
+        with Lexer.TokenError | Parsing.Parse_error -> (
+            let text = String.sub buf.Lexing.lex_buffer 0 buf.Lexing.lex_curr_pos in
+            let nLine = text |> String.fold (fun n c ->
+                 if c = '\n' then n + 1 else n 
+            ) 1 in
+            let msg = Printf.sprintf "Syntax error at line #%d." nLine in
             raise (Failure msg)
         )
     ) in
 
     let note1st = (match ast with
-        | [Ast.Top.Def(_, Ast.PhraseSyntax.Score(_, note :: _))] -> note
-        | _ -> raise (Failure "aa")
-    ) in
-    let note1stSimple = (match Simplify.simplifyNote note1st { Simplify.State.
-        octave = 4;
-        symbol = 'a';
-        half = 0;
-        note = None;
-    } with
-        | (Some(n), _) -> n
+        | [Ast.Top.Def(_, Ast.PhraseSyntax.Score(note :: _))] -> note
         | _ -> raise (Failure "")
     ) in
-    print_string ((Pprint.dumpNoteSimple note1stSimple) ^ "\n")
+    let info = { Generate.Info.
+        timeBgn = Num.num_of_int 0;
+        timeEnd = Num.num_of_int 240;
+        tie = false;
+    } in
+    let state = { Generate.State.
+        prevNote = (0, 'a', 0);
+        prevTree = Ast.NoteSyntax.Rest;
+        tiedNote = Generate.TieMap.empty;
+    } in
+    let (_, seq) = Generate.generateSeq info state [] note1st in
+    Generate.printSeq seq
 )
 
 

@@ -3,7 +3,7 @@
 {
     open Parser
 
-    let lexer = ref (fun buf -> DUMMY)
+    let lexer = ref (fun buf -> EOF)
     let lex = fun buf -> !lexer buf
 
     exception TokenError
@@ -36,7 +36,6 @@ and inner = parse
     | '['                       { LBRACKET }
     | ']'                       { RBRACKET }
     | '/'                       { SLASH }
-    | '.'                       { DOT }
     | '>'                       { LESS }
     | '<'                       { GREATER }
     | '$'                       { DOLLAR }
@@ -47,6 +46,7 @@ and inner = parse
     | '_'                       { UNDER }
     | ['a'-'z']                 { SMALLALPHA((Lexing.lexeme lexbuf).[0]) }
     | ['A'-'Z']                 { LARGEALPHA(Char.lowercase (Lexing.lexeme lexbuf).[0]) }
+    | ['0'-'9']                 { INTEGER(int_of_string (Lexing.lexeme lexbuf)) }
     | _                         { raise TokenError }
 
 {
