@@ -30,33 +30,13 @@ end
 
 let rec generateSeq = (fun info state acc tree ->
     (match tree with
-        | NoteSyntax.Lower(sym1, chr1) ->
+        | NoteSyntax.RelNote(dir, sym1, chr1) ->
             let (oct0, sym0, chr0) = state.State.prevNote in
-            let oct1 = oct0 - if (sym1, chr1) <= (sym0, chr0) then 0 else 1 in
-            let acc = if info.Info.tie then
-                acc
-            else
-                let timeBgn = (match TieMap.findOpt (oct1, sym1, chr1) state.State.tiedNote with
-                    | Some(t) -> t
-                    | None    -> info.Info.timeBgn
-                ) in
-                (timeBgn, info.Info.timeEnd, oct1, sym1, chr1) :: acc
-            in
-            let tiedNote = if info.Info.tie then
-                TieMap.singleton (oct1, sym1, chr1) info.Info.timeBgn
-            else
-                TieMap.empty
-            in
-            let state = { State.
-                prevNote = (oct1, sym1, chr1);
-                prevTree = tree;
-                tiedNote = tiedNote;
-            } in
-            (state, acc)
-
-        | NoteSyntax.Upper(sym1, chr1) ->
-            let (oct0, sym0, chr0) = state.State.prevNote in
-            let oct1 = oct0 + if (sym1, chr1) >= (sym0, chr0) then 0 else 1 in
+            let oct1 = oct0 + (match dir with
+                | -1 -> if (sym1, chr1) <= (sym0, chr0) then 0 else -1
+                | +1 -> if (sym1, chr1) >= (sym0, chr0) then 0 else +1
+                | _  -> assert false
+            ) in
             let acc = if info.Info.tie then
                 acc
             else
