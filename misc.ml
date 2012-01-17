@@ -33,10 +33,6 @@ end
 module List = struct
     include List
 
-    let map = (fun f xs ->
-        xs |> rev_map f |> rev
-    )
-
     let mapFilter = (fun f xs ->
         xs |> fold_left (fun acc x ->
             (match f x with
