@@ -17,9 +17,8 @@ end)
 
 module State = struct
     type t = {
-        prevNote: int * char * int;
-        prevTree: Ast.Note.t;
-        tiedNote: Num.num TieMap.t;
+        prev: int * char * int;
+        ties: Num.num TieMap.t;
     }
 end
 
@@ -32,17 +31,44 @@ module Info = struct
 end
 
 
+let rec elimRepeat = (fun prev tree ->
+    (match tree with
+        | Ast.Note.RelNote(_, _, _) -> (tree, tree)
+        | Ast.Note.Rest             -> (tree, tree)
+        | Ast.Note.Repeat           -> (prev, prev)
+        | Ast.Note.Octave(_)        -> (prev, tree)
+        | Ast.Note.Tie(tree) ->
+            let (prev, tree) = elimRepeat prev tree in
+            let tree = Ast.Note.Tie(tree) in
+            (prev, tree)
+        | Ast.Note.Chord(trees) ->
+            let (prev, trees) = trees |> List.fold_left (fun (prev, acc) tree ->
+                let (prev, tree) = elimRepeat prev tree in
+                (prev, tree :: acc)
+            ) (prev, []) in
+            let tree = Ast.Note.Chord(List.rev trees) in
+            (tree, tree)
+        | Ast.Note.Group(trees) ->
+            let (prev, trees) = trees |> List.fold_left (fun (prev, acc) (tree, w)->
+                let (prev, tree) = elimRepeat prev tree in
+                (prev, (tree, w) :: acc)
+            ) (prev, []) in
+            let tree = Ast.Note.Group(List.rev trees) in
+            (prev, tree)
+    )
+)
+
 let rec generateNote = (fun info state acc tree ->
     (match tree with
         | Ast.Note.RelNote(dir, sym1, chr1) ->
-            let (oct0, sym0, chr0) = state.State.prevNote in
+            let (oct0, sym0, chr0) = state.State.prev in
             let oct1 = oct0 + (match dir with
                 | -1 -> if (sym1, chr1) <= (sym0, chr0) then 0 else -1
                 | +1 -> if (sym1, chr1) >= (sym0, chr0) then 0 else +1
                 | _  -> assert false
             ) in
             let timeBgn = (match
-                TieMap.findOpt (oct1, sym1, chr1) state.State.tiedNote
+                TieMap.findOpt (oct1, sym1, chr1) state.State.ties
             with
                 | Some(t) -> t
                 | None    -> info.Info.timeBgn
@@ -52,45 +78,43 @@ let rec generateNote = (fun info state acc tree ->
             else
                 (timeBgn, info.Info.timeEnd, oct1, sym1, chr1) :: acc
             in
-            let tiedNote = if info.Info.tie then
+            let ties = if info.Info.tie then
                 TieMap.singleton (oct1, sym1, chr1) timeBgn
             else
                 TieMap.empty
             in
             let state = { State.
-                prevNote = (oct1, sym1, chr1);
-                prevTree = tree;
-                tiedNote = tiedNote;
+                prev = (oct1, sym1, chr1);
+                ties = ties;
             } in
             (state, acc)
 
         | Ast.Note.Repeat ->
-            generateNote info state acc state.State.prevTree
+            assert false
 
         | Ast.Note.Rest
         | Ast.Note.Chord([]) ->
-            let state = { state with State.tiedNote = TieMap.empty } in
+            let state = { state with State.ties = TieMap.empty } in
             (state, acc)
 
         | Ast.Note.Chord(tree1 :: trees) ->
             let (state1, acc) = generateNote info state acc tree1 in
-            let (_, tiedNote, acc) = trees |> List.fold_left (fun (prevNote, tiedNote, acc) tree ->
-                let stateN = { state with State.prevNote = prevNote } in
+            let (_, ties, acc) = trees |> List.fold_left (fun (prev, ties, acc) tree ->
+                let stateN = { state with State.prev = prev } in
                 let (stateN, acc) = generateNote info stateN acc tree in
-                let tiedNote = TieMap.merge (fun k x y ->
+                let ties = TieMap.merge (fun k x y ->
                     (match (x, y) with
                         | (Some(x), Some(y)) -> raise Error
                         | (Some(x), None   ) -> Some(x)
                         | (None   , Some(y)) -> Some(y)
                         | (None   , None   ) -> None
                     )
-                ) tiedNote stateN.State.tiedNote in
-                (stateN.State.prevNote, tiedNote, acc)
-            ) (state1.State.prevNote, state1.State.tiedNote, acc) in
+                ) ties stateN.State.ties in
+                (stateN.State.prev, ties, acc)
+            ) (state1.State.prev, state1.State.ties, acc) in
             let state = { State.
-                prevNote = state1.State.prevNote;
-                prevTree = tree;
-                tiedNote = tiedNote;
+                prev = state1.State.prev;
+                ties = ties;
             } in
             (state, acc)
 
@@ -117,9 +141,9 @@ let rec generateNote = (fun info state acc tree ->
             (state, acc)
 
         | Ast.Note.Octave(i) ->
-            let (oct, sym, chr) = state.State.prevNote in
+            let (oct, sym, chr) = state.State.prev in
             let state = { state with State.
-                prevNote = (oct + i, sym, chr)
+                prev = (oct + i, sym, chr)
             } in
             (state, acc)
      
@@ -133,19 +157,19 @@ let rec generatePhrase = (fun defs i acc tree ->
     (match tree with
         | Ast.Phrase.Score(notes) ->
             let state = { State.
-                prevNote = (0, 'a', 0);
-                prevTree = Ast.Note.Rest;
-                tiedNote = TieMap.empty;
+                prev = (0, 'a', 0);
+                ties = TieMap.empty;
             } in
-            let (i, _, acc) = notes |> List.fold_left (fun (i, state, acc) note ->
+            let (i, _, _, acc) = notes |> List.fold_left (fun (i, prev, state, acc) note ->
                 let info = { Info.
                     timeBgn = Num.num_of_int  i;
                     timeEnd = Num.num_of_int (i + 1);
                     tie = false;
                 } in
+                let (prev, note) = elimRepeat prev note in
                 let (state, acc) = generateNote info state acc note in
-                (i + 1, state, acc)
-            ) (i, state, acc) in
+                (i + 1, prev, state, acc)
+            ) (i, Ast.Note.Rest, state, acc) in
             (i, acc)
 
         | Ast.Phrase.Repeat ->
