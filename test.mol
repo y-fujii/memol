@@ -1,10 +1,10 @@
 test0 = score {
-	CDEF > | c^[c(DE)^] | (DE)
+	CDEF > | c^[c(DE)^] | (DD++E-E)
 }
 
 test1 = score {
-	WXYZ | wXYZ
+	A (/C) (/E) (/G)
 }
 
 #main = [(test0 test1) test1 test0]
-main = test0
+main = [test0 test1]
