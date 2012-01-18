@@ -1,5 +1,5 @@
 SRCS = \
-	misc.ml ast.ml parser.mli parser.ml lexer.ml generate.ml sequence.ml \
+	misc.ml ast.ml parser.mli parser.ml lexer.ml sequence.ml generate.ml \
 	smf.ml main.ml
 LIBS = nums.cma
 PROG = memol

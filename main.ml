@@ -8,7 +8,10 @@ let getOptions = (fun () ->
     let dst = ref None in
     Arg.parse
         [
-            ("-o", Arg.String(fun arg -> dst := Some(arg)), "\tSpecify the output file name.");
+            ("-o",
+                Arg.String(fun arg -> dst := Some(arg)),
+                "\tSpecify the output file name."
+            );
         ]
         (fun arg ->
             (match !src with
@@ -42,11 +45,11 @@ let main = (fun () ->
         )
     ) in
 
-    let phrase = (match ast with
-        | [Ast.Top.Def(_, p)] -> p
-        | _ -> raise (Failure "")
+    let defs = Generate.generate ast in
+    let seq = (match Generate.DefMap.findOpt "main" defs with
+        | Some(seq) -> seq
+        | None -> raise (Failure "An entry point is not found.")
     ) in
-    let (_, seq) = Generate.generatePhrase 0 [] phrase in
     let seq = seq |> Sequence.mapTime (fun t -> Num.((num_of_int 240) */ t)) in
     Sequence.print seq
 )
