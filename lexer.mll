@@ -38,8 +38,8 @@ and inner = parse
     | '['                       { LBRACKET }
     | ']'                       { RBRACKET }
     | '/'                       { SLASH }
-    | '>'                       { LESS }
-    | '<'                       { GREATER }
+    | '<'                       { LESS }
+    | '>'                       { GREATER }
     | '$'                       { DOLLAR }
     | '+'                       { PLUS }
     | '-'                       { MINUS }
