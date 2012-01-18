@@ -5,6 +5,11 @@ open Misc
 
 exception Error
 
+module DefMap = Map.Make(struct
+    type t = string
+    let compare = String.compare
+end)
+
 module TieMap = Map.Make(struct
     type t = (int * char * int)
     let compare = compare
@@ -120,7 +125,7 @@ let rec generateNote = (fun info state acc tree ->
     )
 )
 
-let rec generatePhrase = (fun i acc tree ->
+let rec generatePhrase = (fun defs i acc tree ->
     (match tree with
         | Ast.Phrase.Score(notes) ->
             let state = { State.
@@ -142,15 +147,28 @@ let rec generatePhrase = (fun i acc tree ->
         | Ast.Phrase.Repeat ->
             raise (Failure "NYI")
 
+        | Ast.Phrase.Variable(name) ->
+            (match DefMap.findOpt name defs with
+                | Some(seq) ->
+                    (* XXX *)
+                    let seq = Sequence.mapTime (fun t -> Num.((num_of_int i) +/ t)) seq in
+                    let i = seq |> List.fold_left (fun t0 (_, t1, _, _, _) ->
+                        Num.max t0 t1
+                    ) (Num.num_of_int 0) in
+                    (Num.int_of_num i, seq @ acc)
+                | None ->
+                    raise Error
+            )
+
         | Ast.Phrase.Sequence(trees) ->
             trees |> List.fold_left (fun (i, acc) tree ->
-                generatePhrase i acc tree
+                generatePhrase defs i acc tree
             ) (i, acc)
 
         | Ast.Phrase.Parallel(trees) ->
             let (fi, acc) = trees |> List.fold_left (fun (j, acc) (tree, v) ->
                 if not v then
-                    let (k, acc) = generatePhrase i acc tree in
+                    let (k, acc) = generatePhrase defs i acc tree in
                     (max j k, acc)
                 else
                     (j, acc)
@@ -159,7 +177,7 @@ let rec generatePhrase = (fun i acc tree ->
                 if v then
                     let rec loop = (fun k acc ->
                         if k < fi then
-                            let (k, acc) = generatePhrase k acc tree in
+                            let (k, acc) = generatePhrase defs k acc tree in
                             loop k acc
                         else
                             (k, acc)
@@ -171,4 +189,14 @@ let rec generatePhrase = (fun i acc tree ->
             ) (i, acc) in
             (max fi vi, acc)
     )
+)
+
+let generate = (fun trees ->
+    trees |> List.fold_left (fun defs tree ->
+        (match tree with
+            | Ast.Top.Def(name, tree) ->
+                let (_, seq) = generatePhrase defs 0 [] tree in
+                DefMap.add name seq defs
+        )
+    ) DefMap.empty
 )

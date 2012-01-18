@@ -16,6 +16,7 @@ module Phrase = struct
     type t =
         | Repeat
         | Score of Note.t list
+        | Variable of string
         | Parallel of (t * bool) list
         | Sequence of t list
 end

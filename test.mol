@@ -1,6 +1,9 @@
+test = score { PQRS|WXYZ }
+
 main = (
 	score {
 		[2C^C G] [(cEGBC) D+ (cE) /] | / / | a a
 	}
 	score { c } *
+	test
 )

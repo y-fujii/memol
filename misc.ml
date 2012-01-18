@@ -89,3 +89,15 @@ module Buffer = struct
         addByte buf ( k         land 0xff);
     )
 end
+
+module Num = struct
+    include Num
+
+    let min = (fun x y ->
+        if x </ y then x else y
+    )
+
+    let max = (fun x y ->
+        if x >/ y then x else y
+    )
+end

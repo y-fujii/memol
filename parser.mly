@@ -22,6 +22,7 @@ top
 
 phrase
     : SLASH                                 { Phrase.Repeat }
+    | LABEL	                                { Phrase.Variable($1) }
     | LBRACKET innerSequence RBRACKET       { Phrase.Sequence($2) }
     | LPAREN innerParallel RPAREN           { Phrase.Parallel($2) }
     | SCORE LBRACE innerScore RBRACE	    { Phrase.Score($3) }
