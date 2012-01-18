@@ -23,8 +23,8 @@ let print = (fun seq ->
     )
 )
 
-let transTime = (fun a b ->
+let mapTime = (fun f ->
     List.map (fun (t0, t1, oct, sym, chr) ->
-        (Num.(a */ t0 +/ b), Num.(a */ t1 +/ b), oct, sym, chr)
+        (f t0, f t1, oct, sym, chr)
     )
 )

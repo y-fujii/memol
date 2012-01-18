@@ -46,8 +46,8 @@ let main = (fun () ->
         | [Ast.Top.Def(_, p)] -> p
         | _ -> raise (Failure "")
     ) in
-    let seq = Generate.generatePhrase [] phrase in
-    let seq = seq |> Sequence.transTime (Num.num_of_int 240) (Num.num_of_int 0) in
+    let (_, seq) = Generate.generatePhrase 0 [] phrase in
+    let seq = seq |> Sequence.mapTime (fun t -> Num.((num_of_int 240) */ t)) in
     Sequence.print seq
 )
 
