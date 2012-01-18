@@ -41,7 +41,9 @@ let rec generateNote = (fun info state acc tree ->
                 | +1 -> if (sym1, chr1) >= (sym0, chr0) then 0 else +1
                 | _  -> assert false
             ) in
-            let timeBgn = (match TieMap.findOpt (oct1, sym1, chr1) state.State.tiedNote with
+            let timeBgn = (match
+                TieMap.findOpt (oct1, sym1, chr1) state.State.tiedNote
+            with
                 | Some(t) -> t
                 | None    -> info.Info.timeBgn
             ) in

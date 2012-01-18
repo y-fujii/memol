@@ -19,7 +19,8 @@ let print = (fun seq ->
         else
             String.make (-chr) '-'
         in
-        Printf.printf "[%4d %4d] %+d %c%s\n" (Num.int_of_num t0) (Num.int_of_num t1) oct sym sch
+        let open Num in
+        Printf.printf "%5d %4d %+d %c%s\n" (int_of_num t0) (int_of_num (t1 -/ t0)) oct sym sch
     )
 )
 

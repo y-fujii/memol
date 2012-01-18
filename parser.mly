@@ -50,7 +50,7 @@ note
     | note HAT                              { Note.Tie($1) }
 
 octave
-    : LESS                                  { Note.Octave( 1) }
+    : LESS                                  { Note.Octave(+1) }
     | GREATER                               { Note.Octave(-1) }
 
 keySig
