@@ -1,7 +1,6 @@
 (* by y.fujii <y-fujii at mimosa-pudica.net>, public domain *)
 
 open Misc
-open Ast
 
 
 exception Error
@@ -14,7 +13,7 @@ end)
 module State = struct
     type t = {
         prevNote: int * char * int;
-        prevTree: NoteSyntax.t;
+        prevTree: Ast.Note.t;
         tiedNote: Num.num TieMap.t;
     }
 end
@@ -28,9 +27,9 @@ module Info = struct
 end
 
 
-let rec generateSeq = (fun info state acc tree ->
+let rec generateNote = (fun info state acc tree ->
     (match tree with
-        | NoteSyntax.RelNote(dir, sym1, chr1) ->
+        | Ast.Note.RelNote(dir, sym1, chr1) ->
             let (oct0, sym0, chr0) = state.State.prevNote in
             let oct1 = oct0 + (match dir with
                 | -1 -> if (sym1, chr1) <= (sym0, chr0) then 0 else -1
@@ -58,19 +57,19 @@ let rec generateSeq = (fun info state acc tree ->
             } in
             (state, acc)
 
-        | NoteSyntax.Repeat ->
-            generateSeq info state acc state.State.prevTree
+        | Ast.Note.Repeat ->
+            generateNote info state acc state.State.prevTree
 
-        | NoteSyntax.Rest
-        | NoteSyntax.Chord([]) ->
+        | Ast.Note.Rest
+        | Ast.Note.Chord([]) ->
             let state = { state with State.tiedNote = TieMap.empty } in
             (state, acc)
 
-        | NoteSyntax.Chord(tree1 :: trees) ->
-            let (state, acc) = generateSeq info state acc tree1 in
+        | Ast.Note.Chord(tree1 :: trees) ->
+            let (state, acc) = generateNote info state acc tree1 in
             let (_, tiedNote, acc) = trees |> List.fold_left (fun (prevNote, tiedNote, acc) tree ->
                 let state = { state with State.prevNote = prevNote } in
-                let (state, acc) = generateSeq info state acc tree in
+                let (state, acc) = generateNote info state acc tree in
                 let tiedNote = TieMap.merge (fun k x y ->
                     (match (x, y) with
                         | (Some(x), Some(y)) -> raise Error
@@ -87,11 +86,11 @@ let rec generateSeq = (fun info state acc tree ->
             } in
             (state, acc)
 
-        | NoteSyntax.Group(trees) ->
+        | Ast.Note.Group(trees) ->
             let ndiv = trees |> List.fold_left (fun n (_, w) -> n + w) 0 in
             let span = Num.((info.Info.timeEnd -/ info.Info.timeBgn) // (num_of_int ndiv)) in
             let trees = if info.Info.tie then
-                trees |> List.applyLst (fun (tree, w) -> (NoteSyntax.Tie(tree), w))
+                trees |> List.applyLst (fun (tree, w) -> (Ast.Note.Tie(tree), w))
             else
                 trees
             in
@@ -102,40 +101,43 @@ let rec generateSeq = (fun info state acc tree ->
                     timeEnd = t1;
                     tie = false;
                 } in
-                let (state, acc) = generateSeq info state acc tree in
+                let (state, acc) = generateNote info state acc tree in
                 (t1, state, acc)
             ) (info.Info.timeBgn, state, acc) in
             (state, acc)
 
-        | NoteSyntax.Octave(i) ->
+        | Ast.Note.Octave(i) ->
             let (oct, sym, chr) = state.State.prevNote in
             let state = { state with State.
                 prevNote = (oct + i, sym, chr)
             } in
             (state, acc)
      
-        | NoteSyntax.Tie(tree) ->
+        | Ast.Note.Tie(tree) ->
             let info = { info with Info.tie = true } in
-            generateSeq info state acc tree
+            generateNote info state acc tree
     )
 )
 
-let sortSeq =
-    List.sort (fun (xt0, _, xoct, xsym, xchr) (yt0, _, yoct, ysym, ychr) ->
-        let c = Num.compare_num xt0 yt0 in
-        if c != 0 then
-            c
-        else
-            compare (xoct, xsym, xchr) (yoct, ysym, ychr)
-    )
+let rec generatePhrase = (fun acc tree ->
+    (match tree with
+        | Ast.Phrase.Score(notes) ->
+            let state = { State.
+                prevNote = (0, 'a', 0);
+                prevTree = Ast.Note.Rest;
+                tiedNote = TieMap.empty;
+            } in
+            let (_, _, acc) = notes |> List.fold_left (fun (i, state, acc) note ->
+                let info = { Info.
+                    timeBgn = Num.num_of_int  i;
+                    timeEnd = Num.num_of_int (i + 1);
+                    tie = false;
+                } in
+                let (state, acc) = generateNote info state acc note in
+                (i + 1, state, acc)
+            ) (0, state, acc) in
+            acc
 
-let printSeq = (fun seq ->
-    seq |> sortSeq |> List.iter (fun (t0, t1, oct, sym, chr) ->
-        let sch = if chr >= 0 then
-            String.make chr '+'
-        else
-            String.make (-chr) '-'
-        in
-        Printf.printf "[%4d %4d] %+d %c%s\n" (Num.int_of_num t0) (Num.int_of_num t1) oct sym sch
+        | _ -> raise (Failure "Not yet implemented")
     )
 )

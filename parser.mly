@@ -21,10 +21,10 @@ top
     |                                       { [] }
 
 phrase
-    : SLASH                                 { PhraseSyntax.Repeat }
-    | LBRACKET innerSequence RBRACKET       { PhraseSyntax.Sequence($2) }
-    | LPAREN innerParallel RPAREN           { PhraseSyntax.Parallel($2) }
-    | SCORE LBRACE innerScore RBRACE	    { PhraseSyntax.Score($3) }
+    : SLASH                                 { Phrase.Repeat }
+    | LBRACKET innerSequence RBRACKET       { Phrase.Sequence($2) }
+    | LPAREN innerParallel RPAREN           { Phrase.Parallel($2) }
+    | SCORE LBRACE innerScore RBRACE	    { Phrase.Score($3) }
 
 innerSequence
     : phrase innerSequence                  { $1 :: $2 }
@@ -36,21 +36,21 @@ innerParallel
     |                                       { [] }
 
 innerScore
-    : innerGroup VERT innerScore            { NoteSyntax.Group($1) :: $3 }
-    | innerGroup                            { [ NoteSyntax.Group($1) ] }
+    : innerGroup VERT innerScore            { Note.Group($1) :: $3 }
+    | innerGroup                            { [ Note.Group($1) ] }
 
 note
-    : UNDER                                 { NoteSyntax.Rest }
-    | SLASH                                 { NoteSyntax.Repeat }
-    | SMALLALPHA keySig                     { NoteSyntax.RelNote(-1, $1, $2) }
-    | LARGEALPHA keySig                     { NoteSyntax.RelNote(+1, $1, $2) }
-    | LBRACKET innerGroup RBRACKET          { NoteSyntax.Group($2) }
-    | LPAREN innerChord RPAREN              { NoteSyntax.Chord($2) }
-    | note HAT                              { NoteSyntax.Tie($1) }
+    : UNDER                                 { Note.Rest }
+    | SLASH                                 { Note.Repeat }
+    | SMALLALPHA keySig                     { Note.RelNote(-1, $1, $2) }
+    | LARGEALPHA keySig                     { Note.RelNote(+1, $1, $2) }
+    | LBRACKET innerGroup RBRACKET          { Note.Group($2) }
+    | LPAREN innerChord RPAREN              { Note.Chord($2) }
+    | note HAT                              { Note.Tie($1) }
 
 octave
-    : LESS                                  { NoteSyntax.Octave( 1) }
-    | GREATER                               { NoteSyntax.Octave(-1) }
+    : LESS                                  { Note.Octave( 1) }
+    | GREATER                               { Note.Octave(-1) }
 
 keySig
     : PLUS keySig                           { $2 + 1 }

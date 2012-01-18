@@ -1,4 +1,6 @@
-SRCS = misc.ml ast.ml parser.mli parser.ml lexer.ml generate.ml smf.ml main.ml
+SRCS = \
+	misc.ml ast.ml parser.mli parser.ml lexer.ml generate.ml sequence.ml \
+	smf.ml main.ml
 LIBS = nums.cma
 PROG = memol
 

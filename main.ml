@@ -42,22 +42,13 @@ let main = (fun () ->
         )
     ) in
 
-    let note1st = (match ast with
-        | [Ast.Top.Def(_, Ast.PhraseSyntax.Score(note :: _))] -> note
+    let phrase = (match ast with
+        | [Ast.Top.Def(_, p)] -> p
         | _ -> raise (Failure "")
     ) in
-    let info = { Generate.Info.
-        timeBgn = Num.num_of_int 0;
-        timeEnd = Num.num_of_int 240;
-        tie = false;
-    } in
-    let state = { Generate.State.
-        prevNote = (0, 'a', 0);
-        prevTree = Ast.NoteSyntax.Rest;
-        tiedNote = Generate.TieMap.empty;
-    } in
-    let (_, seq) = Generate.generateSeq info state [] note1st in
-    Generate.printSeq seq
+    let seq = Generate.generatePhrase [] phrase in
+    let seq = seq |> Sequence.transTime (Num.num_of_int 240) (Num.num_of_int 0) in
+    Sequence.print seq
 )
 
 
