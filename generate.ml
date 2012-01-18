@@ -88,8 +88,9 @@ let rec generateNote = (fun info state acc tree ->
 
         | Ast.Note.Group(trees) ->
             let ndiv = trees |> List.fold_left (fun n (_, w) -> n + w) 0 in
-            let span = Num.((info.Info.timeEnd -/ info.Info.timeBgn) // (num_of_int ndiv)) in
+            let span = Num.(Info.(info.timeEnd -/ info.timeBgn) // (num_of_int ndiv)) in
             let trees = if info.Info.tie then
+                (* XXX: Octave *)
                 trees |> List.applyLst (fun (tree, w) -> (Ast.Note.Tie(tree), w))
             else
                 trees
@@ -119,7 +120,7 @@ let rec generateNote = (fun info state acc tree ->
     )
 )
 
-let rec generatePhrase = (fun acc tree ->
+let rec generatePhrase = (fun i acc tree ->
     (match tree with
         | Ast.Phrase.Score(notes) ->
             let state = { State.
@@ -127,7 +128,7 @@ let rec generatePhrase = (fun acc tree ->
                 prevTree = Ast.Note.Rest;
                 tiedNote = TieMap.empty;
             } in
-            let (_, _, acc) = notes |> List.fold_left (fun (i, state, acc) note ->
+            let (i, _, acc) = notes |> List.fold_left (fun (i, state, acc) note ->
                 let info = { Info.
                     timeBgn = Num.num_of_int  i;
                     timeEnd = Num.num_of_int (i + 1);
@@ -135,9 +136,39 @@ let rec generatePhrase = (fun acc tree ->
                 } in
                 let (state, acc) = generateNote info state acc note in
                 (i + 1, state, acc)
-            ) (0, state, acc) in
-            acc
+            ) (i, state, acc) in
+            (i, acc)
 
-        | _ -> raise (Failure "Not yet implemented")
+        | Ast.Phrase.Repeat ->
+            raise (Failure "NYI")
+
+        | Ast.Phrase.Sequence(trees) ->
+            trees |> List.fold_left (fun (i, acc) tree ->
+                generatePhrase i acc tree
+            ) (i, acc)
+
+        | Ast.Phrase.Parallel(trees) ->
+            let (fi, acc) = trees |> List.fold_left (fun (j, acc) (tree, v) ->
+                if not v then
+                    let (k, acc) = generatePhrase i acc tree in
+                    (max j k, acc)
+                else
+                    (j, acc)
+            ) (i, acc) in
+            let (vi, acc) = trees |> List.fold_left (fun (j, acc) (tree, v) ->
+                if v then
+                    let rec loop = (fun k acc ->
+                        if k < fi then
+                            let (k, acc) = generatePhrase k acc tree in
+                            loop k acc
+                        else
+                            (k, acc)
+                    ) in
+                    let (k, acc) = loop i acc in
+                    (max j k, acc)
+                else
+                    (j, acc)
+            ) (i, acc) in
+            (max fi vi, acc)
     )
 )
