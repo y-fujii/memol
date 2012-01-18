@@ -1,7 +1,8 @@
 SRCS = \
 	misc.ml ast.ml parser.mli parser.ml lexer.ml sequence.ml generate.ml \
 	smf.ml main.ml
-LIBS = nums.cma
+LIBS_BYTE = num.cma
+LIBS_OPT  = nums.cmxa
 PROG = memol
 
 
@@ -17,7 +18,8 @@ clean:
 
 
 $(PROG): $(SRCS)
-	ocamlc -o $(PROG) $(LIBS) $(SRCS)
+	#ocamlc -o $(PROG) $(LIBS_BYTE) $(SRCS)
+	ocamlopt -o $(PROG) $(LIBS_OPT) $(SRCS)
 
 lexer.ml: lexer.mll
 	ocamllex lexer.mll

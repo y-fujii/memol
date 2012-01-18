@@ -13,6 +13,7 @@ let label = ['a'-'z' 'A'-'Z' '_'] ['0'-'9' 'a'-'z' 'A'-'Z' '_']*
 
 rule outer = parse
     | [' ' '\t' '\r' '\n']      { outer lexbuf }
+    | '#' [^ '\n']*             { outer lexbuf }
     | '{'                       { lexer := inner; LBRACE }
     | '('                       { LPAREN }
     | ')'                       { RPAREN }
@@ -30,6 +31,7 @@ rule outer = parse
 
 and inner = parse
     | [' ' '\t' '\r' '\n']      { inner lexbuf }
+    | '#' [^ '\n']*             { inner lexbuf }
     | '}'                       { lexer := outer; RBRACE }
     | '('                       { LPAREN }
     | ')'                       { RPAREN }
