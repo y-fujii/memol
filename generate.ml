@@ -41,17 +41,17 @@ let rec generateNote = (fun info state acc tree ->
                 | +1 -> if (sym1, chr1) >= (sym0, chr0) then 0 else +1
                 | _  -> assert false
             ) in
+            let timeBgn = (match TieMap.findOpt (oct1, sym1, chr1) state.State.tiedNote with
+                | Some(t) -> t
+                | None    -> info.Info.timeBgn
+            ) in
             let acc = if info.Info.tie then
                 acc
             else
-                let timeBgn = (match TieMap.findOpt (oct1, sym1, chr1) state.State.tiedNote with
-                    | Some(t) -> t
-                    | None    -> info.Info.timeBgn
-                ) in
                 (timeBgn, info.Info.timeEnd, oct1, sym1, chr1) :: acc
             in
             let tiedNote = if info.Info.tie then
-                TieMap.singleton (oct1, sym1, chr1) info.Info.timeBgn
+                TieMap.singleton (oct1, sym1, chr1) timeBgn
             else
                 TieMap.empty
             in
@@ -71,10 +71,10 @@ let rec generateNote = (fun info state acc tree ->
             (state, acc)
 
         | Ast.Note.Chord(tree1 :: trees) ->
-            let (state, acc) = generateNote info state acc tree1 in
+            let (state1, acc) = generateNote info state acc tree1 in
             let (_, tiedNote, acc) = trees |> List.fold_left (fun (prevNote, tiedNote, acc) tree ->
-                let state = { state with State.prevNote = prevNote } in
-                let (state, acc) = generateNote info state acc tree in
+                let stateN = { state with State.prevNote = prevNote } in
+                let (stateN, acc) = generateNote info stateN acc tree in
                 let tiedNote = TieMap.merge (fun k x y ->
                     (match (x, y) with
                         | (Some(x), Some(y)) -> raise Error
@@ -82,10 +82,11 @@ let rec generateNote = (fun info state acc tree ->
                         | (None   , Some(y)) -> Some(y)
                         | (None   , None   ) -> None
                     )
-                ) tiedNote state.State.tiedNote in
-                (state.State.prevNote, tiedNote, acc)
-            ) (state.State.prevNote, state.State.tiedNote, acc) in
-            let state = { state with State.
+                ) tiedNote stateN.State.tiedNote in
+                (stateN.State.prevNote, tiedNote, acc)
+            ) (state1.State.prevNote, state1.State.tiedNote, acc) in
+            let state = { State.
+                prevNote = state1.State.prevNote;
                 prevTree = tree;
                 tiedNote = tiedNote;
             } in
@@ -93,6 +94,7 @@ let rec generateNote = (fun info state acc tree ->
 
         | Ast.Note.Group(trees) ->
             let ndiv = trees |> List.fold_left (fun n (_, w) -> n + w) 0 in
+            if ndiv = 0 then raise Error else
             let span = Num.(Info.(info.timeEnd -/ info.timeBgn) // (num_of_int ndiv)) in
             let trees = if info.Info.tie then
                 (* XXX: Octave *)

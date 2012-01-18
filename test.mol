@@ -1,10 +1,11 @@
-test = score { PQRS|WXYZ }
-# sdfsdfsa dfsad sdf 
+test0 = score {
+	CDEF | c^[c(dE)^] | (dE)
+	#CDEF | c^[c(X^Y^Z^)] | (dE)
+}
 
-main = (
-	score {
-		[2C^C G] [(cEGBC) D+ (cE) /] | / / | a a
-	}
-	score { c } *
-	test
-)
+test1 = score {
+	WXYZ | wXYZ
+}
+
+# main = [(test0 test1) test1 test0]
+main = test0
