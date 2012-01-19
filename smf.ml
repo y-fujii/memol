@@ -71,13 +71,13 @@ let dump = (fun timeUnit buf events ->
     ) 0 in
 
     let open Buffer in
-    add_string buf "MThd";               (* head chunk magic *)
-    addInt32B  buf 6;                    (* chunk length *)
-    addInt16B  buf 0;                    (* format type *)
-    addInt16B  buf 1;                    (* # of tracks *)
-    addInt16B  buf timeUnit;             (* unit of time *)
-    add_string buf "MTrk";               (* track chunk magic *)
-    addInt32B  buf ((length content) + 4);
-    add_buffer buf content;
-    add_string buf "\x00\xff\x2f\x00";
+    add_string buf "MThd";                  (* head chunk magic *)
+    addInt32B  buf 6;                       (* chunk length *)
+    addInt16B  buf 0;                       (* format type *)
+    addInt16B  buf 1;                       (* # of tracks *)
+    addInt16B  buf timeUnit;                (* unit of time *)
+    add_string buf "MTrk";                  (* track chunk magic *)
+    addInt32B  buf ((length content) + 4);  (* chunk length *)
+    add_buffer buf content;                 (* midi events *)
+    add_string buf "\x00\xff\x2f\x00";      (* track end marker *)
 )
