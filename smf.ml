@@ -5,7 +5,7 @@ open Misc
 
 exception Error
 
-type midiEvent =
+type msg =
     | NoteOff of int * int
     | NoteOn of int * int
     | Control of int * int
@@ -14,7 +14,7 @@ type midiEvent =
 
 let dumpTime = (fun buf t ->
     let rec calcSize = (fun n ->
-        if t < 1 lsl (n * 7 + 1) then
+        if t < 1 lsl (n * 7) then
             n
         else
             calcSize (n + 1)
@@ -71,13 +71,13 @@ let dump = (fun timeUnit buf events ->
     ) 0 in
 
     let open Buffer in
-    let buf = create 0 in
     add_string buf "MThd";               (* head chunk magic *)
-    add_string buf "\x00\x00\x00\x06";   (* chunk length *)
-    add_string buf "\x00\x00";           (* format type *)
-    add_string buf "\x00\x01";           (* # of tracks *)
+    addInt32B  buf 6;                    (* chunk length *)
+    addInt16B  buf 0;                    (* format type *)
+    addInt16B  buf 1;                    (* # of tracks *)
     addInt16B  buf timeUnit;             (* unit of time *)
     add_string buf "MTrk";               (* track chunk magic *)
-    addInt32B  buf (length content);
+    addInt32B  buf ((length content) + 4);
     add_buffer buf content;
+    add_string buf "\x00\xff\x2f\x00";
 )
