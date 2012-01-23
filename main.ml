@@ -50,7 +50,7 @@ let main = (fun () ->
         | Some(seq) -> seq
         | None -> raise (Failure "An entry point is not found.")
     ) in
-    let seq = seq |> Sequence.mapTime (fun t -> Num.((num_of_int 240) */ t)) in
+    let seq = seq |> Sequence.timeMap (fun t -> Num.((num_of_int 240) */ t)) in
     Sequence.print seq
 )
 

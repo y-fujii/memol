@@ -162,13 +162,13 @@ let rec generatePhrase = (fun defs i acc tree ->
             } in
             let (i, _, _, acc) = notes |> List.fold_left (fun (i, prev, state, acc) note ->
                 let info = { Info.
-                    timeBgn = Num.num_of_int  i;
-                    timeEnd = Num.num_of_int (i + 1);
+                    timeBgn = i;
+                    timeEnd = Num.(i +/ (num_of_int 1));
                     tie = false;
                 } in
                 let (prev, note) = elimRepeat prev note in
                 let (state, acc) = generateNote info state acc note in
-                (i + 1, prev, state, acc)
+                (Num.(i +/ (num_of_int 1)), prev, state, acc)
             ) (i, Ast.Note.Rest, state, acc) in
             (i, acc)
 
@@ -179,11 +179,9 @@ let rec generatePhrase = (fun defs i acc tree ->
             (match DefMap.findOpt name defs with
                 | Some(seq) ->
                     (* XXX *)
-                    let seq = Sequence.mapTime (fun t -> Num.((num_of_int i) +/ t)) seq in
-                    let i = seq |> List.fold_left (fun t0 (_, t1, _, _, _) ->
-                        Num.max t0 t1
-                    ) (Num.num_of_int 0) in
-                    (Num.int_of_num i, seq @ acc)
+                    let seq = seq |> Sequence.timeMap (fun t -> Num.(i +/ t)) in
+                    let (_, i) = Sequence.timeRange seq in
+                    (i, seq @ acc)
                 | None ->
                     raise Error
             )
@@ -197,7 +195,7 @@ let rec generatePhrase = (fun defs i acc tree ->
             let (fi, acc) = trees |> List.fold_left (fun (j, acc) (tree, v) ->
                 if not v then
                     let (k, acc) = generatePhrase defs i acc tree in
-                    (max j k, acc)
+                    (Num.max_num j k, acc)
                 else
                     (j, acc)
             ) (i, acc) in
@@ -211,11 +209,11 @@ let rec generatePhrase = (fun defs i acc tree ->
                             (k, acc)
                     ) in
                     let (k, acc) = loop i acc in
-                    (max j k, acc)
+                    (Num.max_num j k, acc)
                 else
                     (j, acc)
             ) (i, acc) in
-            (max fi vi, acc)
+            (Num.max_num fi vi, acc)
     )
 )
 
@@ -223,7 +221,7 @@ let generate = (fun trees ->
     trees |> List.fold_left (fun defs tree ->
         (match tree with
             | Ast.Top.Def(name, tree) ->
-                let (_, seq) = generatePhrase defs 0 [] tree in
+                let (_, seq) = generatePhrase defs (Num.num_of_int 0) [] tree in
                 DefMap.add name seq defs
         )
     ) DefMap.empty

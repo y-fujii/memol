@@ -28,8 +28,16 @@ let print = (fun seq ->
     )
 )
 
-let mapTime = (fun f ->
+let timeMap = (fun f ->
     List.map (fun (t0, t1, oct, sym, chr) ->
         (f t0, f t1, oct, sym, chr)
     )
+)
+
+let timeRange = (fun seq ->
+    seq |> List.fold_left (fun (min_, max_) (t0, t1, _, _, _) ->
+        let min_ = Num.min_num min_ t0 in
+        let max_ = Num.max_num max_ t1 in
+        (min_, max_)
+    ) (Num.num_of_int max_int, Num.num_of_int min_int)
 )
