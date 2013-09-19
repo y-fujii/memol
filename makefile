@@ -18,8 +18,8 @@ clean:
 
 
 $(PROG): $(SRCS)
-	#ocamlc -o $(PROG) $(LIBS_BYTE) $(SRCS)
-	ocamlopt -o $(PROG) $(LIBS_OPT) $(SRCS)
+	#ocamlc -w +a-27 -o $(PROG) $(LIBS_BYTE) $(SRCS)
+	ocamlopt -w +a-27 -o $(PROG) $(LIBS_OPT) $(SRCS)
 
 lexer.ml: lexer.mll
 	ocamllex lexer.mll

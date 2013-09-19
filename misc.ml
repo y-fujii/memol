@@ -18,7 +18,7 @@ let openInSafe = (fun proc file ->
 module String = struct
     include String
 
-    let rec fold = (fun f acc str ->
+    let fold = (fun f acc str ->
         let n = length str in
         let rec loop = (fun i acc ->
             if i >= n then
