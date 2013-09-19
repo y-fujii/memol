@@ -5,19 +5,21 @@ open Misc
 
 exception Error
 
-type msg =
-    | NoteOff of int * int
-    | NoteOn of int * int
-    | Control of int * int
-    | Tempo of int
+module Event = struct
+    type t =
+        | NoteOff of int * int
+        | NoteOn  of int * int
+        | Control of int * int
+        | Tempo   of int
+end
 
 
 let dumpTime = (fun buf t ->
-    let rec calcSize = (fun n ->
+    let rec size = (fun n ->
         if t < 1 lsl (n * 7) then
             n
         else
-            calcSize (n + 1)
+            size (n + 1)
     ) in
     let rec dump = (fun n ->
         let c = (t lsr (n * 7)) land 0x7f in
@@ -28,18 +30,18 @@ let dumpTime = (fun buf t ->
             dump (n - 1)
         )
     ) in
-    dump ((calcSize 1) - 1)
+    dump ((size 1) - 1)
 )
     
 let dumpMidi = (fun buf ch ev ->
     (match ev with
-        | NoteOff(note, vel) ->
+        | Event.NoteOff(note, vel) ->
             List.iter (Buffer.addByte buf) [ (0x80 lor ch); note; vel ]
 
-        | NoteOn(note, vel) ->
+        | Event.NoteOn(note, vel) ->
             List.iter (Buffer.addByte buf) [ (0x90 lor ch); note; vel ]
 
-        | Control(num, value) ->
+        | Event.Control(num, value) ->
             (match num with
                 | num when num < 128 ->
                     List.iter (Buffer.addByte buf) [ (0xb0 lor ch); num; value ]
@@ -57,7 +59,7 @@ let dumpMidi = (fun buf ch ev ->
                     raise Error
             )
 
-        | Tempo(value) ->
+        | Event.Tempo(value) ->
             List.iter (Buffer.addByte buf) [ 0xff; 0x51; 0x03; value ]
     )
 )
