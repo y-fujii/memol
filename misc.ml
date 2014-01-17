@@ -1,7 +1,7 @@
 (* by y.fujii <y-fujii at mimosa-pudica.net>, public domain *)
 
 
-let (|>) = fun v f -> f v
+(* let (|>) = fun v f -> f v *)
 
 let openInSafe = (fun proc file ->
     let ich = open_in file in

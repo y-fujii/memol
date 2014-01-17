@@ -18,7 +18,7 @@ clean:
 
 
 $(PROG): $(SRCS)
-	ocamlopt -w +a-27 -cc "$(CXX)" -o $(PROG) $(LIBS) $(SRCS)
+	ocamlopt -w +a -cc "$(CXX)" -o $(PROG) $(LIBS) $(SRCS)
 
 lexer.ml: lexer.mll
 	ocamllex lexer.mll

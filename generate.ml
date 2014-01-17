@@ -42,7 +42,7 @@ let rec elimRepeat = (fun prev tree ->
             let tree = Ast.Note.Tie(tree) in
             (prev, tree)
         | Ast.Note.Chord(trees) ->
-            let (prev, trees) = trees |> List.fold_left (fun (prev, acc) tree ->
+            let (_, trees) = trees |> List.fold_left (fun (prev, acc) tree ->
                 let (prev, tree) = elimRepeat prev tree in
                 (prev, tree :: acc)
             ) (prev, []) in
@@ -102,9 +102,9 @@ let rec generateNote = (fun info state acc tree ->
             let (_, ties, acc) = trees |> List.fold_left (fun (prev, ties, acc) tree ->
                 let stateN = { state with State.prev = prev } in
                 let (stateN, acc) = generateNote info stateN acc tree in
-                let ties = TieMap.merge (fun k x y ->
+                let ties = TieMap.merge (fun _ x y ->
                     (match (x, y) with
-                        | (Some(x), Some(y)) -> raise Error
+                        | (Some(_), Some(_)) -> raise Error
                         | (Some(x), None   ) -> Some(x)
                         | (None   , Some(y)) -> Some(y)
                         | (None   , None   ) -> None
