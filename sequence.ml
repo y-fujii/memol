@@ -5,9 +5,8 @@ open Misc
 
 let sort =
     List.sort (fun (xt0, _, xoct, xsym, xchr) (yt0, _, yoct, ysym, ychr) ->
-        let c = Num.compare_num xt0 yt0 in
-        if c != 0 then
-            c
+        if xt0 != yt0 then
+            Num.compare_num xt0 yt0
         else
             compare (xoct, xsym, xchr) (yoct, ysym, ychr)
     )
@@ -41,3 +40,26 @@ let timeRange = (fun seq ->
         (min_, max_)
     ) (Num.num_of_int max_int, Num.num_of_int min_int)
 )
+
+let symbolTbl = (
+    let tbl = Hashtbl.create 0 in
+    let add = Hashtbl.add tbl in
+    add 'c'  0;
+    add 'd'  2;
+    add 'e'  4;
+    add 'f'  5;
+    add 'g'  7;
+    add 'a'  9;
+    add 'b' 11;
+    tbl
+)
+
+let messages = (fun seq ->
+    let dst = seq |> List.fold_left (fun dst (t0, t1, oct, sym, chr) ->
+        let note = 60 + oct * 12 + (Hashtbl.find symbolTbl sym) + chr in
+        let msg0 = (t0, 0, Smf.Event.NoteOn (note, 96)) in
+        let msg1 = (t1, 0, Smf.Event.NoteOff(note, 96)) in
+        msg0 :: msg1 :: dst
+    ) [] in
+    dst |> List.sort compare
+ )
