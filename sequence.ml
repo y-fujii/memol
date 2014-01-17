@@ -44,21 +44,21 @@ let timeRange = (fun seq ->
 let symbolTbl = (
     let tbl = Hashtbl.create 0 in
     let add = Hashtbl.add tbl in
-    add 'c'  0;
-    add 'd'  2;
-    add 'e'  4;
-    add 'f'  5;
-    add 'g'  7;
-    add 'a'  9;
-    add 'b' 11;
+    add 'a' (-3);
+    add 'b' (-1);
+    add 'c'   0;
+    add 'd'   2;
+    add 'e'   4;
+    add 'f'   5;
+    add 'g'   7;
     tbl
 )
 
 let messages = (fun seq ->
     let dst = seq |> List.fold_left (fun dst (t0, t1, oct, sym, chr) ->
         let note = 60 + oct * 12 + (Hashtbl.find symbolTbl sym) + chr in
-        let msg0 = (t0, 0, Smf.Event.NoteOn (note, 96)) in
-        let msg1 = (t1, 0, Smf.Event.NoteOff(note, 96)) in
+        let msg0 = (t0, 0, Smf.Event.NoteOn (note, 80)) in
+        let msg1 = (t1, 0, Smf.Event.NoteOff(note, 80)) in
         msg0 :: msg1 :: dst
     ) [] in
     dst |> List.sort compare
