@@ -6,11 +6,16 @@ open Misc
 let getOptions = (fun () ->
     let src = ref None in
     let dst = ref None in
+    let useJack = ref false in
     Arg.parse
         [
             ("-o",
                 Arg.String(fun arg -> dst := Some(arg)),
                 "\tSpecify the output file name."
+            );
+            ("-j",
+                Arg.Unit(fun () -> useJack := true),
+                "\tPlay with Jack."
             );
         ]
         (fun arg ->
@@ -21,11 +26,11 @@ let getOptions = (fun () ->
         )
         "Usage:"
     ;
-    (!dst, !src)
+    (!dst, !src, !useJack)
 )
 
 let main = (fun () ->
-    let (odst, osrc) = getOptions() in
+    let (odst, osrc, useJack) = getOptions() in
     let src = (match osrc with
         | Some(src) -> src
         | _ -> raise (Failure "")
@@ -50,8 +55,27 @@ let main = (fun () ->
         | Some(seq) -> seq
         | None -> raise (Failure "An entry point is not found.")
     ) in
-    let seq = seq |> Sequence.timeMap (fun t -> Num.((num_of_int 240) */ t)) in
-    Sequence.print seq
+    let seq = seq |> Sequence.timeMap (fun t -> Num.((num_of_int (960 * 2)) */ t)) in
+    Sequence.print seq;
+    flush stdout;
+
+    if useJack then (
+        let msgs = seq |> Sequence.messages in
+        let jack = Jack.init "memol" in
+        try (
+            Jack.connect jack "memol:out" "midi-monitor:input";
+            Jack.stop jack;
+            Jack.seek jack 0 960;
+            Jack.data jack msgs 960;
+            Jack.play jack;
+            Unix.sleep 3600;
+        )
+        with _ -> (
+            Jack.stop jack;
+            Jack.term jack;
+        )
+    )
+    else ()
 )
 
 
