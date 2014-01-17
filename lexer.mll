@@ -3,7 +3,7 @@
 {
     open Parser
 
-    let lexer = ref (fun buf -> EOF)
+    let lexer = ref (fun _ -> EOF)
     let lex = fun buf -> !lexer buf
 
     exception TokenError

@@ -30,7 +30,7 @@ let getOptions = (fun () ->
 )
 
 let main = (fun () ->
-    let (odst, osrc, useJack) = getOptions() in
+    let (_, osrc, useJack) = getOptions() in
     let src = (match osrc with
         | Some(src) -> src
         | _ -> raise (Failure "")
