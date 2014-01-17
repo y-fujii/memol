@@ -34,7 +34,7 @@ end
 let rec elimRepeat = (fun prev tree ->
     (match tree with
         | Ast.Note.RelNote(_, _, _) -> (tree, tree)
-        | Ast.Note.Rest             -> (tree, tree)
+        | Ast.Note.Rest             -> (prev, tree)
         | Ast.Note.Repeat           -> (prev, prev)
         | Ast.Note.Octave(_)        -> (prev, tree)
         | Ast.Note.Tie(tree) ->
