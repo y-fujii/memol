@@ -14,26 +14,7 @@ module Event = struct
 end
 
 
-let dumpTime = (fun buf t ->
-    let rec size = (fun n ->
-        if t < 1 lsl (n * 7) then
-            n
-        else
-            size (n + 1)
-    ) in
-    let rec dump = (fun n ->
-        let c = (t lsr (n * 7)) land 0x7f in
-        if n = 0 then
-            Buffer.addByte buf (c lor 0x00)
-        else (
-            Buffer.addByte buf (c lor 0x80);
-            dump (n - 1)
-        )
-    ) in
-    dump ((size 1) - 1)
-)
-    
-let dumpMidi = (fun buf ch ev ->
+let dumpMsg = (fun buf ch ev ->
     (match ev with
         | Event.NoteOff(note, vel) ->
             List.iter (Buffer.addByte buf) [ (0x80 lor ch); note; vel ]
@@ -64,11 +45,30 @@ let dumpMidi = (fun buf ch ev ->
     )
 )
 
-let dump = (fun timeUnit buf events ->
+let dumpTime = (fun buf t ->
+    let rec size = (fun n ->
+        if t < 1 lsl (n * 7) then
+            n
+        else
+            size (n + 1)
+    ) in
+    let rec dump = (fun n ->
+        let c = (t lsr (n * 7)) land 0x7f in
+        if n = 0 then
+            Buffer.addByte buf (c lor 0x00)
+        else (
+            Buffer.addByte buf (c lor 0x80);
+            dump (n - 1)
+        )
+    ) in
+    dump ((size 1) - 1)
+)
+    
+let dumpSmf = (fun timeUnit buf events ->
     let content = Buffer.create 0 in
     let _ = events |> List.fold_left (fun t0 (t1, ch, ev) ->
         dumpTime content (t1 - t0);
-        dumpMidi content ch ev;
+        dumpMsg  content ch ev;
         t1
     ) 0 in
 

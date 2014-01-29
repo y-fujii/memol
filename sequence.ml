@@ -57,8 +57,8 @@ let symbolTbl = (
 let messages = (fun seq ->
     let dst = seq |> List.fold_left (fun dst (t0, t1, oct, sym, chr) ->
         let note = 60 + oct * 12 + (Hashtbl.find symbolTbl sym) + chr in
-        let msg0 = (t0, 0, Smf.Event.NoteOn (note, 80)) in
-        let msg1 = (t1, 0, Smf.Event.NoteOff(note, 80)) in
+        let msg0 = (t0, 0, Midi.Event.NoteOn (note, 80)) in
+        let msg1 = (t1, 0, Midi.Event.NoteOff(note, 80)) in
         msg0 :: msg1 :: dst
     ) [] in
     dst |> List.sort compare
