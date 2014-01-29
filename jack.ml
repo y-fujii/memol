@@ -21,7 +21,7 @@ let data = (fun jack msgs base ->
     let buf = Buffer.create 4 in
     let midi = msgs |> List.map (fun (t, ch, ev) ->
         Buffer.clear buf;
-        Smf.dumpMidi buf ch ev;
+        Midi.dumpMsg buf ch ev;
         (Num.int_of_num t, Buffer.contents buf)
     ) in
     cJackData jack midi base

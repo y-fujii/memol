@@ -1,5 +1,5 @@
 SRCS = \
-	misc.ml ast.ml parser.mli parser.ml lexer.ml smf.ml sequence.ml generate.ml \
+	misc.ml ast.ml parser.mli parser.ml lexer.ml midi.ml sequence.ml generate.ml \
 	jack.ml jack_c.o main.ml
 PROG = memol
 LIBS = nums.cmxa unix.cmxa -cclib -ljack
