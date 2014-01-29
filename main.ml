@@ -64,6 +64,7 @@ let main = (fun () ->
         let jack = Jack.init "memol" in
         try (
             Jack.connect jack "memol:out" "midi-monitor:input";
+            Jack.connect jack "memol:out" "LinuxSampler:midi_in_0";
             Jack.stop jack;
             Jack.seek jack 0 960;
             Jack.data jack msgs 960;

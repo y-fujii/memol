@@ -5,7 +5,7 @@
 %}
 
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET EQUAL LESS GREATER DOLLAR
-%token PLUS MINUS UNDER SLASH HAT STAR VERT SCORE VALUE
+%token PLUS MINUS UNDER SLASH HAT STAR VERT SCORE VALUE DOT
 %token <int> INTEGER
 %token <char> SMALLALPHA LARGEALPHA
 %token <string> LABEL
@@ -43,6 +43,7 @@ innerScore
 note
     : UNDER                                 { Note.Rest }
     | SLASH                                 { Note.Repeat }
+    | DOT	                                { Note.RepeatTied }
     | SMALLALPHA keySig                     { Note.RelNote(-1, $1, $2) }
     | LARGEALPHA keySig                     { Note.RelNote(+1, $1, $2) }
     | LBRACKET innerGroup RBRACKET          { Note.Group($2) }

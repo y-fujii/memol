@@ -6,6 +6,7 @@ module Note = struct
         | RelNote of int * char * int
         | Rest
         | Repeat
+        | RepeatTied
         | Octave of int
         | Chord of t list
         | Group of (t * int) list
