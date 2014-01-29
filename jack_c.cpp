@@ -80,7 +80,7 @@ int jackProc( jack_nframes_t n, void* _self ) {
 	};
 	auto bgn = lower_bound( self->frames0.cbegin(), self->frames0.cend(), pos.frame,     compare );
 	auto end = lower_bound( self->frames0.cbegin(), self->frames0.cend(), pos.frame + n, compare );
-	for( auto it = fbgn; it != fend; ++it ) {
+	for( auto it = bgn; it != end; ++it ) {
 		uint64_t i = it->time * pos.frame_rate / self->base0 - pos.frame;
 		jack_midi_event_write( buf, i, it->msg, it->size );
 	}
