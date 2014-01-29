@@ -36,13 +36,15 @@ struct JackPlayer {
 	vector<MidiFrame> frames0;
 	vector<MidiFrame> frames1;
 	atomic<bool>      updating;
+	atomic<bool>      reseting;
 
 	JackPlayer():
 		jack( nullptr ),
 		port( nullptr ),
 		base0( 480 ),
 		base1( 480 ),
-		updating( false )
+		updating( false ),
+		reseting( false )
 	{
 	}
 };
@@ -63,6 +65,15 @@ int jackProc( jack_nframes_t n, void* _self ) {
 
 	void* buf = jack_port_get_buffer( self->port, n );
 	jack_midi_clear_buffer( buf );
+
+	if( self->reseting ) {
+		uint8_t msg[] = { 0xb0, 0x7b, 0x00 };
+		for( int ch = 0; ch < 16; ++ch ) {
+			msg[0] = 0xb0 + ch;
+			jack_midi_event_write( buf, 0, msg, sizeof msg );
+		}
+		self->reseting = false;
+	}
 
 	auto compare = [&]( MidiFrame const& x, uint64_t y ) {
 		return x.time * pos.frame_rate < y * self->base0;
