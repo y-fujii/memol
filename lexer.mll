@@ -46,6 +46,7 @@ and inner = parse
     | '^'                       { HAT }
     | '|'                       { VERT }
     | '_'                       { UNDER }
+    | '.'                       { DOT }
     | ['a'-'z']                 { SMALLALPHA((Lexing.lexeme lexbuf).[0]) }
     | ['A'-'Z']                 { LARGEALPHA(Char.lowercase (Lexing.lexeme lexbuf).[0]) }
     | ['0'-'9']                 { INTEGER(int_of_string (Lexing.lexeme lexbuf)) }

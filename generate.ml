@@ -36,6 +36,7 @@ let rec elimRepeat = (fun prev tree ->
         | Ast.Note.RelNote(_, _, _) -> (tree, tree)
         | Ast.Note.Rest             -> (prev, tree)
         | Ast.Note.Repeat           -> (prev, prev)
+        | Ast.Note.RepeatTied       -> assert false
         | Ast.Note.Octave(_)        -> (prev, tree)
         | Ast.Note.Tie(tree) ->
             let (prev, tree) = elimRepeat prev tree in
@@ -150,6 +151,9 @@ let rec generateNote = (fun info state acc tree ->
         | Ast.Note.Tie(tree) ->
             let info = { info with Info.tie = true } in
             generateNote info state acc tree
+
+        | Ast.Note.RepeatTied ->
+            assert false
     )
 )
 
