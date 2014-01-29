@@ -36,7 +36,7 @@ struct JackPlayer {
 	vector<MidiFrame> frames0;
 	vector<MidiFrame> frames1;
 	atomic<bool>      updating;
-	atomic<bool>      reseting;
+	atomic<bool>      resetting;
 
 	JackPlayer():
 		jack( nullptr ),
@@ -44,7 +44,7 @@ struct JackPlayer {
 		base0( 480 ),
 		base1( 480 ),
 		updating( false ),
-		reseting( false )
+		resetting( false )
 	{
 	}
 };
@@ -61,13 +61,13 @@ int jackProc( jack_nframes_t n, void* _self ) {
 	void* buf = jack_port_get_buffer( self->port, n );
 	jack_midi_clear_buffer( buf );
 
-	if( self->reseting ) {
+	if( self->resetting ) {
 		uint8_t msg[] = { 0xb0, 0x7b, 0x00 };
 		for( int ch = 0; ch < 16; ++ch ) {
 			msg[0] = 0xb0 + ch;
 			jack_midi_event_write( buf, 0, msg, sizeof msg );
 		}
-		self->reseting = false;
+		self->resetting = false;
 	}
 
 	jack_position_t pos;
