@@ -58,11 +58,6 @@ int jackProc( jack_nframes_t n, void* _self ) {
 		self->updating = false;
 	}
 
-	jack_position_t pos;
-	if( jack_transport_query( self->jack, &pos ) != JackTransportRolling ) {
-		return 0;
-	}
-
 	void* buf = jack_port_get_buffer( self->port, n );
 	jack_midi_clear_buffer( buf );
 
@@ -75,14 +70,19 @@ int jackProc( jack_nframes_t n, void* _self ) {
 		self->reseting = false;
 	}
 
+	jack_position_t pos;
+	if( jack_transport_query( self->jack, &pos ) != JackTransportRolling ) {
+		return 0;
+	}
+
 	auto compare = [&]( MidiFrame const& x, uint64_t y ) {
 		return x.time * pos.frame_rate < y * self->base0;
 	};
-	auto fbgn = lower_bound( self->frames0.cbegin(), self->frames0.cend(), pos.frame,     compare );
-	auto fend = lower_bound( self->frames0.cbegin(), self->frames0.cend(), pos.frame + n, compare );
-	for( auto fit = fbgn; fit != fend; ++fit ) {
-		uint64_t i = fit->time * pos.frame_rate / self->base0 - pos.frame;
-		jack_midi_event_write( buf, i, fit->msg, fit->size );
+	auto bgn = lower_bound( self->frames0.cbegin(), self->frames0.cend(), pos.frame,     compare );
+	auto end = lower_bound( self->frames0.cbegin(), self->frames0.cend(), pos.frame + n, compare );
+	for( auto it = fbgn; it != fend; ++it ) {
+		uint64_t i = it->time * pos.frame_rate / self->base0 - pos.frame;
+		jack_midi_event_write( buf, i, it->msg, it->size );
 	}
 
 	return 0;
